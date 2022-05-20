@@ -1,24 +1,48 @@
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "technique.h"
 
-Technique::Technique() {
+static const char* pVSName = "VS";
+static const char* pFSName = "FS";
+
+const char* ShaderType2ShaderName(GLuint Type)
+{
+    switch (Type) {
+    case GL_VERTEX_SHADER:
+        return pVSName;
+    case GL_FRAGMENT_SHADER:
+        return pFSName;
+    default:
+        assert(0);
+    }
+
+    return NULL;
+}
+Technique::Technique()
+{
     m_shaderProg = 0;
 }
 
-Technique::~Technique() {
-    for (ShaderObjList::iterator it = m_shaderObjList.begin(); it != m_shaderObjList.end(); it++) {
+
+Technique::~Technique()
+{
+    for (ShaderObjList::iterator it = m_shaderObjList.begin(); it != m_shaderObjList.end(); it++)
+    {
         glDeleteShader(*it);
     }
 
-    if (m_shaderProg != 0) {
+    if (m_shaderProg != 0)
+    {
         glDeleteProgram(m_shaderProg);
         m_shaderProg = 0;
     }
 }
 
-bool Technique::Init() {
+
+bool Technique::Init()
+{
     m_shaderProg = glCreateProgram();
 
     if (m_shaderProg == 0) {
@@ -29,7 +53,8 @@ bool Technique::Init() {
     return true;
 }
 
-bool Technique::AddShader(GLenum ShaderType, const char* pShaderText) {
+bool Technique::AddShader(GLenum ShaderType, const char* pShaderText)
+{
     GLuint ShaderObj = glCreateShader(ShaderType);
 
     if (ShaderObj == 0) {
@@ -53,7 +78,7 @@ bool Technique::AddShader(GLenum ShaderType, const char* pShaderText) {
     if (!success) {
         GLchar InfoLog[1024];
         glGetShaderInfoLog(ShaderObj, 1024, NULL, InfoLog);
-        fprintf(stderr, "Error compiling shader type %d: '%s'\n", ShaderType, InfoLog);
+        fprintf(stderr, "Error compiling %s: '%s'\n", ShaderType2ShaderName(ShaderType), InfoLog);
         return false;
     }
 
@@ -62,7 +87,9 @@ bool Technique::AddShader(GLenum ShaderType, const char* pShaderText) {
     return true;
 }
 
-bool Technique::Finalize() {
+
+bool Technique::Finalize()
+{
     GLint Success = 0;
     GLchar ErrorLog[1024] = { 0 };
 
@@ -77,13 +104,14 @@ bool Technique::Finalize() {
 
     glValidateProgram(m_shaderProg);
     glGetProgramiv(m_shaderProg, GL_VALIDATE_STATUS, &Success);
-    if (Success == 0) {
+    if (!Success) {
         glGetProgramInfoLog(m_shaderProg, sizeof(ErrorLog), NULL, ErrorLog);
         fprintf(stderr, "Invalid shader program: '%s'\n", ErrorLog);
         return false;
     }
 
-    for (ShaderObjList::iterator it = m_shaderObjList.begin(); it != m_shaderObjList.end(); it++) {
+    for (ShaderObjList::iterator it = m_shaderObjList.begin(); it != m_shaderObjList.end(); it++)
+    {
         glDeleteShader(*it);
     }
 
@@ -92,14 +120,18 @@ bool Technique::Finalize() {
     return true;
 }
 
-void Technique::Enable() {
+
+void Technique::Enable()
+{
     glUseProgram(m_shaderProg);
 }
 
-GLint Technique::GetUniformLocation(const char* pUniformName) {
+
+GLint Technique::GetUniformLocation(const char* pUniformName)
+{
     GLint Location = glGetUniformLocation(m_shaderProg, pUniformName);
 
-    if ((unsigned int)Location == 0xFFFFFFFF) {
+    if (Location == (GLint)0xFFFFFFFF) {
         fprintf(stderr, "Warning! Unable to get the location of uniform '%s'\n", pUniformName);
     }
 
