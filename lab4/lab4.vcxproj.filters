@@ -60,6 +60,9 @@
     <ClInclude Include="skybox_technique.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="engine_common.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp">
